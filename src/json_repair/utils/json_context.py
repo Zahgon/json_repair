@@ -33,9 +33,7 @@ class JsonContext:
         Returns:
             None
         """
-        self.context.append(value)
-        self.current = value
-        self.empty = False
+        pass
 
     def reset(self) -> None:
         """

@@ -40,33 +40,7 @@ class StringFileWrapper:
         Returns:
             str: The buffer chunk at the specified index.
         """
-        if index < 0:
-            raise IndexError("Negative indexing is not supported")
-
-        cached = self.buffers.get(index)
-        if cached is not None:
-            return cached
-
-        self._ensure_chunk_position(index)
-        start_pos = self._chunk_positions[index]
-        self.fd.seek(start_pos)
-        chunk = self.fd.read(self.buffer_length)
-        if not chunk:
-            raise IndexError("Chunk index out of range")
-        end_pos = self.fd.tell()
-        if len(self._chunk_positions) <= index + 1:
-            self._chunk_positions.append(end_pos)
-        if len(chunk) < self.buffer_length:
-            self.length = index * self.buffer_length + len(chunk)
-
-        self.buffers[index] = chunk
-        # Save memory by keeping max 2MB buffer chunks and min 2 chunks
-        max_buffers = max(2, int(2_000_000 / self.buffer_length))
-        if len(self.buffers) > max_buffers:
-            oldest_key = next(iter(self.buffers))
-            if oldest_key != index:
-                self.buffers.pop(oldest_key)
-        return chunk
+        pass
 
     def __getitem__(self, index: int | slice) -> str:
         """
@@ -115,35 +89,10 @@ class StringFileWrapper:
         return self.length
 
     def _normalize_slice(self, index: slice) -> tuple[int, int, int]:
-        total_len = len(self)
-        start = 0 if index.start is None else index.start
-        stop = total_len if index.stop is None else index.stop
-        step = 1 if index.step is None else index.step
-
-        if start < 0:
-            start += total_len
-        if stop < 0:
-            stop += total_len
-
-        start = max(start, 0)
-        stop = min(stop, total_len)
-        return start, stop, step
+        pass
 
     def _slice_from_buffers(self, start: int, stop: int) -> str:
-        buffer_index = start // self.buffer_length
-        buffer_end = (stop - 1) // self.buffer_length
-        start_mod = start % self.buffer_length
-        stop_mod = stop % self.buffer_length
-        if stop_mod == 0 and stop > start:
-            stop_mod = self.buffer_length
-        if buffer_index == buffer_end:
-            buffer = self.get_buffer(buffer_index)
-            return buffer[start_mod:stop_mod]
-
-        start_slice = self.get_buffer(buffer_index)[start_mod:]
-        end_slice = self.get_buffer(buffer_end)[:stop_mod]
-        middle_slices = [self.get_buffer(i) for i in range(buffer_index + 1, buffer_end)]
-        return start_slice + "".join(middle_slices) + end_slice
+        pass
 
     def __setitem__(self, index: int | slice, value: str) -> None:  # pragma: no cover
         """
@@ -167,16 +116,4 @@ class StringFileWrapper:
         """
         Ensure that we know the starting file position for the given chunk index.
         """
-        while len(self._chunk_positions) <= chunk_index:
-            prev_index = len(self._chunk_positions) - 1
-            start_pos = self._chunk_positions[-1]
-            self.fd.seek(start_pos, os.SEEK_SET)
-            chunk = self.fd.read(self.buffer_length)
-            end_pos = self.fd.tell()
-            if len(chunk) < self.buffer_length:
-                self.length = prev_index * self.buffer_length + len(chunk)
-            self._chunk_positions.append(end_pos)
-            if not chunk:
-                break
-        if len(self._chunk_positions) <= chunk_index:
-            raise IndexError("Chunk index out of range")
+        pass
